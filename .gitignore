@@ -3,3 +3,10 @@ contacts.csv
 jarvis.db
 /engine/__pycache__
 /engine/cookies.json
+venv/
+.venv/
+env/
+ENV/
+
+__pycache__/
+*.pyc
