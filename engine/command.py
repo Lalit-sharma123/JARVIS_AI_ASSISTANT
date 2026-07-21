@@ -1,13 +1,24 @@
+import platform
 import pyttsx3
 import speech_recognition as sr
 import eel
 import time
+import traceback
+# Initialize once
+if platform.system() == "Windows":
+    engine = pyttsx3.init("sapi5")
+else:
+    engine = pyttsx3.init()
+
+voices = engine.getProperty("voices")
+if voices:
+    engine.setProperty("voice", voices[0].id)
+
+engine.setProperty("rate", 174)
+
+
 def speak(text):
     text = str(text)
-    engine = pyttsx3.init('sapi5')
-    voices = engine.getProperty('voices') 
-    engine.setProperty('voice', voices[0].id)
-    engine.setProperty('rate', 174)
     eel.DisplayMessage(text)
     engine.say(text)
     eel.receiverText(text)
@@ -24,17 +35,25 @@ def takecommand():
         r.pause_threshold = 1
         r.adjust_for_ambient_noise(source)
         
-        audio = r.listen(source, 10, 6)
+        #audio = r.listen(source, 10, 6)
+        audio = r.listen(source, timeout=10, phrase_time_limit=10)
 
     try:
         print('recognizing')
         eel.DisplayMessage('recognizing....')
-        query = r.recognize_google(audio, language='en-in')
+        #query = r.recognize_google(audio, language='en-in')
+        query = r.recognize_google(audio, language="en-US")
         print(f"user said: {query}")
         eel.DisplayMessage(query)
         time.sleep(2)
        
+    
+
     except Exception as e:
+        print("Speech Recognition Error:")
+        print(type(e).__name__)
+        print(repr(e))
+        traceback.print_exc()
         return ""
     
     return query.lower()
@@ -46,12 +65,16 @@ def allCommands(message=1):
         query = takecommand()
         print(query)
         eel.senderText(query)
+        if not query:
+            eel.ShowHood()
+            return
     else:
         query = message
         eel.senderText(query)
     try:
 
         if "open" in query:
+            print("Calling openCommand with:", repr(query))
             from engine.features import openCommand
             openCommand(query)
         elif "on youtube" in query:
@@ -92,7 +115,9 @@ def allCommands(message=1):
         else:
             from engine.features import geminai
             geminai(query)
-    except:
-        print("error")
+            
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
     
     eel.ShowHood()

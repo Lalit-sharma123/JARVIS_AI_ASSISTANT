@@ -7,7 +7,7 @@ import struct
 import subprocess
 import time
 import webbrowser
-from playsound import playsound
+import platform
 import eel
 import pyaudio
 import pyautogui
@@ -19,14 +19,35 @@ import pvporcupine
 
 from engine.helper import extract_yt_term, markdown_to_text, remove_words
 from hugchat import hugchat
+import google.generativeai as genai
+import pygame
 
+try:
+    pygame.mixer.init()
+except Exception as e:
+    print("Audio initialization failed:", e)
 con = sqlite3.connect("jarvis.db")
 cursor = con.cursor()
 
 @eel.expose
 def playAssistantSound():
-    music_dir = "www\\assets\\audio\\start_sound.mp3"
-    playsound(music_dir)
+    try:
+        music_dir = os.path.join(
+            "www",
+            "assets",
+            "audio",
+            "start_sound.mp3"
+        )
+
+        if os.path.exists(music_dir):
+            pygame.mixer.music.load(music_dir)
+            pygame.mixer.music.play()
+
+            while pygame.mixer.music.get_busy():
+                pygame.time.wait(100)
+
+    except Exception as e:
+        print("Audio Error:", e)
 
     
 def openCommand(query):
@@ -45,7 +66,12 @@ def openCommand(query):
 
             if len(results) != 0:
                 speak("Opening "+query)
-                os.startfile(results[0][0])
+                import platform
+
+                if platform.system() == "Windows":
+                    os.startfile(results[0][0])
+                else:
+                    subprocess.Popen(["xdg-open", results[0][0]])
 
             elif len(results) == 0: 
                 cursor.execute(
@@ -59,7 +85,10 @@ def openCommand(query):
                 else:
                     speak("Opening "+query)
                     try:
-                        os.system('start '+query)
+                        if platform.system() == "Windows":
+                            os.system("start " + query)
+                        else:
+                            subprocess.Popen(["xdg-open", query])
                     except:
                         speak("not found")
         except:
@@ -159,12 +188,8 @@ def whatsApp(mobile_no, message, flag, name):
     whatsapp_url = f"whatsapp://send?phone={mobile_no}&text={encoded_message}"
 
     # Construct the full command
-    full_command = f'start "" "{whatsapp_url}"'
-
-    # Open WhatsApp with the constructed URL using cmd.exe
-    subprocess.run(full_command, shell=True)
+    webbrowser.open(whatsapp_url)
     time.sleep(5)
-    subprocess.run(full_command, shell=True)
     
     pyautogui.hotkey('ctrl', 'f')
 
@@ -177,7 +202,9 @@ def whatsApp(mobile_no, message, flag, name):
 # chat bot 
 def chatBot(query):
     user_input = query.lower()
-    chatbot = hugchat.ChatBot(cookie_path="engine\cookies.json")
+    chatbot = hugchat.ChatBot(
+        cookie_path=os.path.join("engine", "cookies.json")
+    )
     id = chatbot.new_conversation()
     chatbot.change_conversation(id)
     response =  chatbot.chat(user_input)
@@ -219,7 +246,7 @@ def sendMessage(message, mobileNo, name):
     tapEvents(957, 1397)
     speak("message send successfully to "+name)
 
-import google.generativeai as genai
+
 def geminai(query):
     try:
         query = query.replace(ASSISTANT_NAME, "")
