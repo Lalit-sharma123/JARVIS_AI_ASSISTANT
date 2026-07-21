@@ -4,13 +4,35 @@ import time
 import markdown2
 from bs4 import BeautifulSoup
 
+# def extract_yt_term(command):
+#     # Define a regular expression pattern to capture the song name
+#     pattern = r'play\s+(.*?)\s+on\s+youtube'
+#     # Use re.search to find the match in the command
+#     match = re.search(pattern, command, re.IGNORECASE)
+#     # If a match is found, return the extracted song name; otherwise, return None
+#     return match.group(1) if match else None
+
+
+import re
+
+
+
 def extract_yt_term(command):
-    # Define a regular expression pattern to capture the song name
-    pattern = r'play\s+(.*?)\s+on\s+youtube'
-    # Use re.search to find the match in the command
-    match = re.search(pattern, command, re.IGNORECASE)
-    # If a match is found, return the extracted song name; otherwise, return None
-    return match.group(1) if match else None
+    command = command.lower().strip()
+
+    patterns = [
+        r'play\s+(.*?)\s+on\s+youtube',
+        r'open\s+youtube\s+and\s+play\s+(.*)',
+        r'open\s+youtube\s+play\s+(.*)',
+        r'play\s+(.*)',
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, command)
+        if match:
+            return match.group(1).strip()
+
+    return ""
 
 
 def remove_words(input_string, words_to_remove):

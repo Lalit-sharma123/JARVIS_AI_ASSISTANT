@@ -12,16 +12,24 @@ import eel
 import pyaudio
 import pyautogui
 from engine.command import speak
-from engine.config import ASSISTANT_NAME, LLM_KEY
+#from engine.config import ASSISTANT_NAME, LLM_KEY
+import webbrowser
+from engine.config import (
+    ASSISTANT_NAME,
+    OLLAMA_URL,
+    OLLAMA_MODEL
+)
+
+
 # Playing assiatnt sound function
 import pywhatkit as kit
 import pvporcupine
 
 from engine.helper import extract_yt_term, markdown_to_text, remove_words
 from hugchat import hugchat
-import google.generativeai as genai
+#import google.generativeai as genai
 import pygame
-
+import requests
 try:
     pygame.mixer.init()
 except Exception as e:
@@ -96,10 +104,43 @@ def openCommand(query):
 
        
 
+# def PlayYoutube(query):
+#     search_term = extract_yt_term(query)
+#     speak("Playing "+search_term+" on YouTube")
+#     kit.playonyt(search_term)
+
+
 def PlayYoutube(query):
+
     search_term = extract_yt_term(query)
-    speak("Playing "+search_term+" on YouTube")
+
+    if not search_term:
+        speak("Opening YouTube")
+        webbrowser.open("https://www.youtube.com")
+        return
+
+    speak(f"Playing {search_term} on YouTube")
     kit.playonyt(search_term)
+
+
+def searchGoogle(query):
+    query = query.lower()
+
+    # Remove command words
+    search = query
+    search = search.replace("open google", "")
+    search = search.replace("search", "")
+    search = search.replace("and", "")
+    search = search.strip()
+
+    if search == "":
+        speak("Opening Google")
+        webbrowser.open("https://www.google.com")
+    else:
+        speak(f"Searching {search}")
+        webbrowser.open(
+            "https://www.google.com/search?q=" + search.replace(" ", "+")
+        )
 
 
 def hotword():
@@ -247,22 +288,49 @@ def sendMessage(message, mobileNo, name):
     speak("message send successfully to "+name)
 
 
+# def geminai(query):
+#     try:
+#         query = query.replace(ASSISTANT_NAME, "")
+#         query = query.replace("search", "")
+#         # Set your API key
+#         genai.configure(api_key=LLM_KEY)
+
+#         # Select a model
+#         model = genai.GenerativeModel("gemini-2.5-flash")
+
+#         # Generate a response
+#         response = model.generate_content(query)
+#         filter_text = markdown_to_text(response.text)
+#         speak(filter_text)
+#     except Exception as e:
+#         print("Error:", e)
+
+
+from engine.config import OLLAMA_URL, OLLAMA_MODEL
+
 def geminai(query):
     try:
-        query = query.replace(ASSISTANT_NAME, "")
-        query = query.replace("search", "")
-        # Set your API key
-        genai.configure(api_key=LLM_KEY)
+        payload = {
+            "model": OLLAMA_MODEL,
+            "prompt": query,
+            "stream": False
+        }
 
-        # Select a model
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = requests.post(
+            OLLAMA_URL,
+            json=payload,
+            timeout=120
+        )
 
-        # Generate a response
-        response = model.generate_content(query)
-        filter_text = markdown_to_text(response.text)
-        speak(filter_text)
+        response.raise_for_status()
+
+        answer = response.json()["response"]
+
+        speak(answer)
+
     except Exception as e:
-        print("Error:", e)
+        print("Ollama Error:", e)
+        speak("Sorry, I could not connect to the AI model.")
 
 # Settings Modal 
 

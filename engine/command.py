@@ -58,66 +58,136 @@ def takecommand():
     
     return query.lower()
 
+# @eel.expose
+# def allCommands(message=1):
+
+#     if message == 1:
+#         query = takecommand()
+#         print(query)
+#         eel.senderText(query)
+#         if not query:
+#             eel.ShowHood()
+#             return
+#     else:
+#         query = message
+#         eel.senderText(query)
+#     try:
+
+#         # if "open" in query:
+#         #     print("Calling openCommand with:", repr(query))
+#         #     from engine.features import openCommand
+#         #     openCommand(query)
+#         # elif "on youtube" in query:
+#         #     from engine.features import PlayYoutube
+#         #     PlayYoutube(query)
+
+#         # -----------------------------
+#         # YouTube commands
+#         # -----------------------------
+#         if "youtube" in query and "play" in query:
+#             from engine.features import PlayYoutube
+#             PlayYoutube(query)
+
+#         # -----------------------------
+#         # Google Search
+#         # -----------------------------
+#         elif "google" in query and "search" in query:
+#             from engine.features import searchGoogle
+#             searchGoogle(query)
+
+#         # -----------------------------
+#         # Open commands
+#         # -----------------------------
+#         elif "open" in query:
+#             from engine.features import openCommand
+#             openCommand(query)
+
+
+#         elif "send message" in query or "phone call" in query or "video call" in query:
+#             from engine.features import findContact, whatsApp, makeCall, sendMessage
+#             contact_no, name = findContact(query)
+#             if(contact_no != 0):
+#                 speak("Which mode you want to use whatsapp or mobile")
+#                 preferance = takecommand()
+#                 print(preferance)
+
+#                 if "mobile" in preferance:
+#                     if "send message" in query or "send sms" in query: 
+#                         speak("what message to send")
+#                         message = takecommand()
+#                         sendMessage(message, contact_no, name)
+#                     elif "phone call" in query:
+#                         makeCall(name, contact_no)
+#                     else:
+#                         speak("please try again")
+#                 elif "whatsapp" in preferance:
+#                     message = ""
+#                     if "send message" in query:
+#                         message = 'message'
+#                         speak("what message to send")
+#                         query = takecommand()
+                                        
+#                     elif "phone call" in query:
+#                         message = 'call'
+#                     else:
+#                         message = 'video call'
+                                        
+#                     whatsApp(contact_no, query, message, name)
+
+#         else:
+#             from engine.features import geminai
+#             geminai(query)
+
+#     except Exception as e:
+#         import traceback
+#         traceback.print_exc()
+    
+#     eel.ShowHood()
+
+
 @eel.expose
 def allCommands(message=1):
 
     if message == 1:
         query = takecommand()
-        print(query)
-        eel.senderText(query)
-        if not query:
-            eel.ShowHood()
-            return
     else:
-        query = message
+        query = str(message).lower().strip()
         eel.senderText(query)
+
+    print("=" * 60)
+    print("Query:", repr(query))
+    print("=" * 60)
+
+    eel.senderText(query)
+
     try:
 
-        if "open" in query:
-            print("Calling openCommand with:", repr(query))
-            from engine.features import openCommand
-            openCommand(query)
-        elif "on youtube" in query:
+        if "youtube" in query and "play" in query:
+            print(">>> PlayYoutube()")
             from engine.features import PlayYoutube
             PlayYoutube(query)
-        
-        elif "send message" in query or "phone call" in query or "video call" in query:
-            from engine.features import findContact, whatsApp, makeCall, sendMessage
-            contact_no, name = findContact(query)
-            if(contact_no != 0):
-                speak("Which mode you want to use whatsapp or mobile")
-                preferance = takecommand()
-                print(preferance)
 
-                if "mobile" in preferance:
-                    if "send message" in query or "send sms" in query: 
-                        speak("what message to send")
-                        message = takecommand()
-                        sendMessage(message, contact_no, name)
-                    elif "phone call" in query:
-                        makeCall(name, contact_no)
-                    else:
-                        speak("please try again")
-                elif "whatsapp" in preferance:
-                    message = ""
-                    if "send message" in query:
-                        message = 'message'
-                        speak("what message to send")
-                        query = takecommand()
-                                        
-                    elif "phone call" in query:
-                        message = 'call'
-                    else:
-                        message = 'video call'
-                                        
-                    whatsApp(contact_no, query, message, name)
+        elif "google" in query and "search" in query:
+            print(">>> searchGoogle()")
+            from engine.features import searchGoogle
+            searchGoogle(query)
+
+        elif "open" in query:
+            print(">>> openCommand()")
+            from engine.features import openCommand
+            openCommand(query)
+
+        # elif "google" in query and "search" in query:
+        #     from engine.features import searchGoogle
+        #     searchGoogle(query)
 
         else:
+            print(">>> geminai()")
             from engine.features import geminai
             geminai(query)
-            
-    except Exception as e:
+
+    except Exception:
         import traceback
         traceback.print_exc()
-    
+
     eel.ShowHood()
