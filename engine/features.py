@@ -1,6 +1,6 @@
 import json
 import os
-from pipes import quote
+from urllib.parse import quote
 import re
 import sqlite3
 import struct
@@ -222,7 +222,8 @@ def whatsApp(mobile_no, message, flag, name):
         jarvis_message = "staring video call with "+name
 
 
-    # Encode the message for URL
+    # Encode the message for URL (fixed: use urllib.parse.quote for URL
+    # encoding instead of the removed/incorrect pipes.quote shell-quoter)
     encoded_message = quote(message)
     print(encoded_message)
     # Construct the URL
@@ -308,33 +309,92 @@ def sendMessage(message, mobileNo, name):
 
 from engine.config import OLLAMA_URL, OLLAMA_MODEL
 
+# def geminai(query):
+#     try:
+#         payload = {
+#             "model": OLLAMA_MODEL,
+#             "prompt": query,
+#             "stream": False
+#         }
+
+#         response = requests.post(
+#             OLLAMA_URL,
+#             json=payload,
+#             timeout=120
+#         )
+
+#         response.raise_for_status()
+
+#         answer = response.json()["response"]
+
+#         speak(answer)
+
+#     except Exception as e:
+#         print("Ollama Error:", e)
+#         speak("Sorry, I could not connect to the AI model.")
+
+
+
+
+
 def geminai(query):
     try:
         payload = {
             "model": OLLAMA_MODEL,
-            "prompt": query,
-            "stream": False
+            "messages": [
+                {
+                    "role": "user",
+                    "content": query
+                }
+            ],
+            "stream": False,
+            "max_tokens": 2048
         }
 
         response = requests.post(
             OLLAMA_URL,
             json=payload,
+            headers={"Content-Type": "application/json"},
             timeout=120
         )
 
         response.raise_for_status()
 
-        answer = response.json()["response"]
+        data = response.json()
 
+        answer = (
+            data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+        )
+
+        if not answer:
+            print("GPT-OSS returned an empty response:", data)
+            speak("Sorry, I could not generate a response.")
+            return
+
+        # Preserve the existing speech-output behavior
         speak(answer)
 
     except Exception as e:
-        print("Ollama Error:", e)
+        print("GPT-OSS Error:", e)
         speak("Sorry, I could not connect to the AI model.")
 
 # Settings Modal 
 
 
+
+def searchWeather(location):
+    location = location.strip()
+
+    if not location:
+        speak("Please tell me the location.")
+        return
+
+    speak(f"Showing the weather for {location}")
+    webbrowser.open(
+        f"https://www.google.com/search?q=weather+{location.replace(' ', '+')}"
+    )
 
 # Assistant name
 @eel.expose

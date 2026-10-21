@@ -10,3 +10,7 @@ ENV/
 
 __pycache__/
 *.pyc
+# Face recognition data and local backups
+engine/auth/trainer/trainer_backup.yml
+engine/auth/trainer/trainer_backup.yml
+engine/auth/trainer/trainer_backup.yml

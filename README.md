@@ -49,3 +49,15 @@ From launching apps to making calls and chatting, Jarvis brings AI and automatio
 ```bash
 git clone https://github.com/yourusername/jarvis-python-assistant.git
 cd jarvis-python-assistant
+
+
+
+
+rm engine/auth/samples/face.*.jpg
+
+python3 engine/auth/sample.py
+
+
+
+
+python3 engine/auth/sample.py
